@@ -13,6 +13,7 @@ main = simpleHTTP nullConf $ CM.msum
         [ dir "home"    $ homePage 
         , dir "index"   $ indexPage 
         , dir "good"    $ goodPage 
+        , dir "params"  $ paramsPage 
         , seeOther ("/index" :: String) 
                    (toResponse ("Page not found. Redirecting to /index\n" :: String))
         ]
@@ -40,3 +41,10 @@ indexPage = appTemplate "Index"
                         (BH.div $ do
                            BH.p $ BH.a ! BA.href "/home" $ "Home."
                            BH.p $ BH.a ! BA.href "/good" $ "Star wars secret")
+
+paramsPage :: ServerPart Response
+paramsPage = 
+    look "str" >>= \s ->
+    appTemplate "Passing parameters in the url" (BH.div $ showParams s)
+    where showParams :: String -> BH.Html
+          showParams s = BH.toHtml $ "str: " ++ s
