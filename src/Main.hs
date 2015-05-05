@@ -8,6 +8,7 @@ module Main where
 import Happstack.Server 
 import Text.Blaze ((!))
 import qualified Control.Monad as CM
+import qualified Data.Monoid as DM
 import qualified Control.Applicative.Indexed as CAI
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.ByteString.Char8 as C
@@ -20,21 +21,34 @@ import SharedForm
 
 main :: IO ()
 main = simpleHTTP nullConf $ CM.msum 
-    [ dir "home"    $ homePage 
+    [ dir "static"  $ serveDirectory DisableBrowsing [] "static"
+    , dir "home"    $ homePage 
     , dir "index"   $ indexPage 
     , dir "good"    $ goodPage 
+    , dir "table"   $ tablePage 
     , dir "params"  $ paramsPage 
     , dir "form"    $ formPage
     , seeOther ("/index" :: String) 
                (toResponse ("Page not found. Redirecting to /index\n" :: String))
     ]
 
+indexPage :: ServerPart Response
+indexPage = appTemplate "Index" $ BH.div $ do
+    BH.p $ BH.a ! BA.href "/home"   $ "Home."
+    BH.p $ BH.a ! BA.href "/table"  $ "Look at a lovely table"
+    BH.p $ BH.a ! BA.href "/form"   $ "Play with a form"
+    BH.p $ BH.a ! BA.href "/good"   $ "Star wars secret"
+
 appTemplate :: BH.Html -> BH.Html -> ServerPart Response
-appTemplate title body = ok $ toResponse $ BH.docTypeHtml $ do
+appTemplate title body = ok $ toResponse $ renderHtml $ do
+    --let css = serveFile (asContentType "text/css") "/static/css/stdtheme.css"
     BH.head $ do
         BH.title title
         BH.meta ! BA.httpEquiv "Content-Type"
                 ! BA.content "text/html;charset=utf-8"
+        BH.link ! BA.rel "stylesheet"
+                ! BA.style "text/css"
+                ! BA.href "static/css/stdtheme.css"
     BH.body $ do
         body
         (BH.div $ BH.a ! BA.href "/index" $ "Index")
@@ -47,12 +61,6 @@ goodPage = appTemplate "The emporer's secret to good dialogue" $ do
     BH.p "Something, something, something dark side"
     BH.p "Something, something, something complete"
 
-indexPage :: ServerPart Response
-indexPage = appTemplate "Index" $ BH.div $ do
-    BH.p $ BH.a ! BA.href "/home" $ "Home."
-    BH.p $ BH.a ! BA.href "/form" $ "Play with a form"
-    BH.p $ BH.a ! BA.href "/good" $ "Star wars secret"
-
 paramsPage :: ServerPart Response
 paramsPage = 
     look "str" >>= \s ->
@@ -63,6 +71,9 @@ paramsPage =
 formPage :: ServerPart Response
 formPage = decodeBody (defaultBodyPolicy "/tmp" 0 10000 10000) >>
            formHandler (userForm "" "")
+
+tablePage :: ServerPart Response
+tablePage = appTemplate "What a Table!" $ table testData
 
 instance BH.ToMarkup (DemoFormError [Input]) where
     toMarkup InvalidEmail = "Email address must contain a @."
@@ -123,3 +134,24 @@ formHandler form = CM.msum
             (Right a) -> appTemplate "Form result" $ BH.toHtml $ show a 
             (Left view) -> appTemplate "Form result" $ blazeForm view 
     ]
+
+data TestTable = TestTable { string1 :: String, string2 :: String, num :: Int }
+
+testData :: [TestTable]
+testData = TestTable "sding" "abnwsn" 3 :
+           TestTable "rfnsn" "sn" 3892 :
+           TestTable "d" "dignaprinb" (-39) : []
+
+tableRow :: TestTable -> BH.Html
+tableRow t = BH.tr $ BH.td (BH.toHtml $ string1 t) >> 
+                     BH.td (BH.toHtml $ string2 t) >> 
+                     BH.td (BH.toHtml $ num t)
+
+tableHeader :: BH.Html
+tableHeader = BH.tr $ BH.th "String 1" >> 
+                      BH.th "String 2" >> 
+                      BH.th "Number"
+
+table :: [TestTable] -> BH.Html
+table t = BH.table ! BA.style "width:100%" $ 
+            tableHeader >> CM.forM_ t tableRow
