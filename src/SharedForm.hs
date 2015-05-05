@@ -15,8 +15,9 @@ instance FormError (DemoFormError input) where
 
 data Username = Username String deriving (Eq, Ord, Read, Show)
 
-mkUsername :: (Monad m) => Form m input error view proof String 
-                        -> Form m input error view proof Username
+mkUsername :: (Monad m) => 
+              Form m input error view proof String -> 
+              Form m input error view proof Username
 mkUsername = imap id Username
 
 data Email = Email String deriving (Eq, Ord, Read, Show)
@@ -33,6 +34,7 @@ validEmailProof errorMsg = Proof ValidEmail (return . check)
 data User = User { username :: Username
                  , email    :: Email
                  } deriving (Eq, Ord, Read, Show)
+
 data ValidUser = ValidUser
 
 mkUser :: (Monad m, Monoid view) => 
