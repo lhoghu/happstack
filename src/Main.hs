@@ -18,41 +18,31 @@ import qualified Text.Reform as TR
 import qualified Text.Reform.Blaze.String as TRBS
 import Text.Reform.Happstack (environment)
 import SharedForm
+import Templates
+import qualified YpmApp as Y
 
 main :: IO ()
 main = simpleHTTP nullConf $ CM.msum 
-    [ dir "static"  $ serveDirectory DisableBrowsing [] "static"
-    , dir "home"    $ homePage 
-    , dir "index"   $ indexPage 
-    , dir "good"    $ goodPage 
-    , dir "table"   $ tablePage 
-    , dir "params"  $ paramsPage 
-    , dir "form"    $ formPage
+    [ dir "static"    $ serveDirectory DisableBrowsing [] "static"
+    , dir "home"      $ homePage 
+    , dir "index"     $ indexPage 
+    , dir "portfolio" $ Y.run
+    , dir "good"      $ goodPage 
+    , dir "table"     $ tablePage 
+    , dir "params"    $ paramsPage 
+    , dir "form"      $ formPage
     , seeOther ("/index" :: String) 
                (toResponse ("Page not found. Redirecting to /index\n" :: String))
     ]
 
 indexPage :: ServerPart Response
 indexPage = appTemplate "Index" $ BH.div $ do
-    BH.p $ BH.a ! BA.href "/home"   $ "Home."
-    BH.p $ BH.a ! BA.href "/table"  $ "Look at a lovely table"
-    BH.p $ BH.a ! BA.href "/form"   $ "Play with a form"
-    BH.p $ BH.a ! BA.href "/good"   $ "Star wars secret"
+    BH.p $ BH.a ! BA.href "/home"       $ "Home."
+    BH.p $ BH.a ! BA.href "/table"      $ "Look at a lovely table"
+    BH.p $ BH.a ! BA.href "/portfolio"  $ "Portfolio manager"
+    BH.p $ BH.a ! BA.href "/form"       $ "Play with a form"
+    BH.p $ BH.a ! BA.href "/good"       $ "Star wars secret"
 
-appTemplate :: BH.Html -> BH.Html -> ServerPart Response
-appTemplate title body = ok $ toResponse $ renderHtml $ do
-    --let css = serveFile (asContentType "text/css") "/static/css/stdtheme.css"
-    BH.head $ do
-        BH.title title
-        BH.meta ! BA.httpEquiv "Content-Type"
-                ! BA.content "text/html;charset=utf-8"
-        BH.link ! BA.rel "stylesheet"
-                ! BA.style "text/css"
-                ! BA.href "static/css/stdtheme.css"
-    BH.body $ do
-        body
-        (BH.div $ BH.a ! BA.href "/index" $ "Index")
-                
 homePage :: ServerPart Response
 homePage = appTemplate "Home page" (BH.p "Hello, from Happstack\n")
 
