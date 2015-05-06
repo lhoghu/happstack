@@ -32,12 +32,13 @@ instance BH.ToMarkup a => BH.ToMarkup (Maybe a) where
     toMarkup Nothing = BH.toMarkup ("-" :: String)
     toMarkup (Just x) = BH.toMarkup x
 
-data Annotations = Annotations { 
+data Annotations a = Annotations { 
     title   :: String, 
     columns :: [String] 
 } deriving Show
 
 class TableMarkup a where
+    annotations :: Annotations a
     row :: a -> BH.Html
 
 headers :: [String] -> BH.Html
@@ -47,7 +48,7 @@ table :: TableMarkup a => [String] -> [a] -> BH.Html
 table hs ps = BH.table $ headers hs >> CM.forM_ ps row
 
 markupTable :: TableMarkup a => 
-               Annotations ->
+               Annotations a ->
                (YD.Connection -> IO [a]) -> 
                HS.ServerPart HS.Response
 markupTable s f = do
@@ -55,34 +56,40 @@ markupTable s f = do
     T.appTemplate (BH.toHtml $ title s) $ table (columns s) x
 
 instance TableMarkup YT.Position where
+    annotations = Annotations {
+        title = "Portfolio Position",
+        columns = ["Symbol", "Currency", "Trade Date", "Units", "Price"]
+    }
+
     row p = BH.tr $ BH.td (BH.toHtml $ YT.possymbol p) >> 
                     BH.td (BH.toHtml $ YT.poscurrency p) >> 
                     BH.td (BH.toHtml $ YT.posdate p) >>
                     BH.td (BH.toHtml $ YT.posposition p) >>
                     BH.td (BH.toHtml $ YT.posstrike p)
 
-positionAnnotations = Annotations {
-    title = "Portfolio Position",
-    columns = ["Symbol", "Currency", "Trade Date", "Units", "Price"]
-}
-
 showPortfolio :: HS.ServerPart HS.Response 
-showPortfolio = markupTable positionAnnotations YD.fetchPositions 
+showPortfolio = markupTable annotations YD.fetchPositions 
 
 instance TableMarkup YT.Dividend where
+    annotations = Annotations {
+        title = "Dividend history",
+        columns = ["Symbol", "Dividend", "Date"]
+    }
+
     row p = BH.tr $ BH.td (BH.toHtml $ YT.divsymbol p) >> 
                     BH.td (BH.toHtml $ YT.dividend p) >> 
                     BH.td (BH.toHtml $ YT.divdate p)
 
-dividendAnnotations = Annotations {
-    title = "Dividend history",
-    columns = ["Symbol", "Dividend", "Date"]
-}
-
 showDividends :: HS.ServerPart HS.Response 
-showDividends = markupTable dividendAnnotations YD.fetchDividends
+showDividends = markupTable annotations YD.fetchDividends
 
 instance TableMarkup YT.Portfolio where
+    annotations = Annotations {
+        title = "Current portfolio value",
+        columns = ["Symbol", "Allocation", "Price", "Cost", 
+                   "Current", "Change", "(%)", "Dividends", "PnL", "(%)"]
+    }
+
     row p = BH.tr $ BH.td (BH.toHtml $ YT.prtfsymbol p) >> 
                     BH.td (BH.toHtml $ YT.prtfalloc p) >> 
                     BH.td (BH.toHtml $ YT.prtfprice p) >> 
@@ -94,17 +101,12 @@ instance TableMarkup YT.Portfolio where
                     BH.td (BH.toHtml $ YT.prtfpnl p) >> 
                     BH.td (BH.toHtml $ YT.prtfpctpnl p)
 
-markToMarketAnnotations = Annotations {
-    title = "Current portfolio value",
-    columns = ["Symbol", "Allocation", "Price", "Cost", "Current", "Change", "(%)", "Dividends", "PnL", "(%)"]
-}
-
-markToMarket :: HS.ServerPart HS.Response 
-markToMarket = markupTable markToMarketAnnotations fetchMark 
-
 fetchMark :: YD.Connection -> IO [YT.Portfolio]
 fetchMark conn = do
     symbols <- YD.fetchSymbols conn 
     YD.populateQuotesTable conn symbols
     YD.updateFx conn
     YD.fetchPortfolio conn
+
+markToMarket :: HS.ServerPart HS.Response 
+markToMarket = markupTable annotations fetchMark 
