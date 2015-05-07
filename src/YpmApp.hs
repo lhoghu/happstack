@@ -14,6 +14,8 @@ import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
 import qualified Data.YahooPortfolioManager.DbAdapter as YD
 import qualified Data.YahooPortfolioManager.Types as YT
+import Data.Text.Format (fixed)
+import Data.Text.Lazy.Builder (toLazyText)
 
 -- | Routing table for requests on the /portfolio path
 run :: HS.ServerPart HS.Response
@@ -113,16 +115,20 @@ instance TableMarkup YT.Portfolio where
                    "Current", "Change", "(%)", "Dividends", "PnL", "(%)"]
     }
 
-    row p = BH.tr $ BH.td (BH.toHtml $ YT.prtfsymbol p) >> 
-                    BH.td (BH.toHtml $ YT.prtfalloc p) >> 
-                    BH.td (BH.toHtml $ YT.prtfprice p) >> 
-                    BH.td (BH.toHtml $ YT.prtfcost p) >> 
-                    BH.td (BH.toHtml $ YT.prtfcurrent p) >> 
-                    BH.td (BH.toHtml $ YT.prtfchange p) >> 
-                    BH.td (BH.toHtml $ YT.prtfpctchange p) >> 
-                    BH.td (BH.toHtml $ YT.prtfdiv p) >> 
-                    BH.td (BH.toHtml $ YT.prtfpnl p) >> 
-                    BH.td (BH.toHtml $ YT.prtfpctpnl p)
+    row p = BH.tr $ 
+        BH.td (BH.toHtml $ YT.prtfsymbol p) >> 
+        BH.td (BH.toHtml $ formatter (YT.prtfalloc p)) >> 
+        BH.td (BH.toHtml $ formatter (YT.prtfprice p)) >> 
+        BH.td (BH.toHtml $ formatter (YT.prtfcost p)) >> 
+        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfcurrent p))) >> 
+        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfchange p))) >> 
+        BH.td (BH.toHtml $ formatter (100.0 * handleMaybe (YT.prtfpctchange p))) >> 
+        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfdiv p))) >> 
+        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfpnl p))) >> 
+        BH.td (BH.toHtml $ formatter (100.0 * handleMaybe (YT.prtfpctpnl p)))
+        where formatter x = toLazyText $ fixed 2 x
+              handleMaybe (Just x) = x
+              handleMaybe Nothing = 0.0 
 
 addDividend = HS.decodeBody (HS.defaultBodyPolicy "/tmp" 0 10000 10000) >>
               F.formHandler (F.addDivForm "" "" "") 

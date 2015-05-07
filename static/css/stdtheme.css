@@ -5,5 +5,9 @@ table, th, td {
 th {
     background-color: green;
     color: white;
-    text-align: left;
+    text-align: center;
+}
+
+td {
+    text-align: right;
 }
