@@ -9,44 +9,64 @@ import qualified Happstack.Server as HS
 import qualified Control.Monad as CM
 import Control.Monad.Trans (liftIO) 
 import qualified Templates as T
+import qualified YpmForms as F
 import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
 import qualified Data.YahooPortfolioManager.DbAdapter as YD
 import qualified Data.YahooPortfolioManager.Types as YT
 
+-- | Routing table for requests on the /portfolio path
 run :: HS.ServerPart HS.Response
 run = CM.msum
     [ HS.dir "show"    $ showPortfolio
     , HS.dir "divs"    $ showDividends
+    , HS.dir "addd"    $ addDividend
+    , HS.dir "addt"    $ addTransaction
     , HS.dir "mark"    $ markToMarket
     , ypmIndex
     ]
 
+-- | Index navigation page for /portfolio/* urls
 ypmIndex :: HS.ServerPart HS.Response
 ypmIndex = T.appTemplate "Portfolio Manager" $ BH.div $ do
     BH.p $ BH.a BH.! BA.href "/portfolio/show" $ "Show the current portfolio"
     BH.p $ BH.a BH.! BA.href "/portfolio/mark" $ "Show the current prtf value"
     BH.p $ BH.a BH.! BA.href "/portfolio/divs" $ "Show the dividend history"
+    BH.p $ BH.a BH.! BA.href "/portfolio/addd" $ "Add a new dividend"
+    BH.p $ BH.a BH.! BA.href "/portfolio/addt" $ "Add a new transaction"
 
 instance BH.ToMarkup a => BH.ToMarkup (Maybe a) where
     toMarkup Nothing = BH.toMarkup ("-" :: String)
     toMarkup (Just x) = BH.toMarkup x
 
+-- | String constants to label html markup for a table representation of
+-- data type a
 data Annotations a = Annotations { 
     title   :: String, 
     columns :: [String] 
 } deriving Show
 
+-- | Interface for data types that can be represented in an html table
 class TableMarkup a where
+
+    -- | Set the window title and table column headers
     annotations :: Annotations a
+
+    -- | Define how the type variable a maps onto a table row.
+    -- Return the html markup for a single row
     row :: a -> BH.Html
 
+-- | Turn a vector of strings into a set of column headers
 headers :: [String] -> BH.Html
 headers h = BH.tr $ CM.forM_ h (\s -> BH.th $ BH.toHtml s)
 
 table :: TableMarkup a => [String] -> [a] -> BH.Html
 table hs ps = BH.table $ headers hs >> CM.forM_ ps row
 
+-- | Create html markup of a table
+-- Annotations a contains the window title and table column headers
+-- The function is a db retrieval function that, given a db connection,
+-- returns the table content. There should be one row per list element.
 markupTable :: TableMarkup a => 
                Annotations a ->
                (YD.Connection -> IO [a]) -> 
@@ -55,6 +75,7 @@ markupTable s f = do
     x <- liftIO $ YD.withConnection f
     T.appTemplate (BH.toHtml $ title s) $ table (columns s) x
 
+-- | Html table for current holdings
 instance TableMarkup YT.Position where
     annotations = Annotations {
         title = "Portfolio Position",
@@ -70,6 +91,7 @@ instance TableMarkup YT.Position where
 showPortfolio :: HS.ServerPart HS.Response 
 showPortfolio = markupTable annotations YD.fetchPositions 
 
+-- | Html table for the dividend history of the current holdings
 instance TableMarkup YT.Dividend where
     annotations = Annotations {
         title = "Dividend history",
@@ -83,6 +105,7 @@ instance TableMarkup YT.Dividend where
 showDividends :: HS.ServerPart HS.Response 
 showDividends = markupTable annotations YD.fetchDividends
 
+-- | Html table for the current value of the current holdings
 instance TableMarkup YT.Portfolio where
     annotations = Annotations {
         title = "Current portfolio value",
@@ -100,6 +123,26 @@ instance TableMarkup YT.Portfolio where
                     BH.td (BH.toHtml $ YT.prtfdiv p) >> 
                     BH.td (BH.toHtml $ YT.prtfpnl p) >> 
                     BH.td (BH.toHtml $ YT.prtfpctpnl p)
+
+addDividend = HS.decodeBody (HS.defaultBodyPolicy "/tmp" 0 10000 10000) >>
+              F.formHandler (F.addDivForm "" "" "") 
+                            "Add dividend" 
+                            "/portfolio/addd" 
+                            "addDiv"
+                            add
+              where
+              add a = (liftIO . YD.withConnection $ (flip YD.insertDividend) a) 
+                        >> showDividends
+
+addTransaction = HS.decodeBody (HS.defaultBodyPolicy "/tmp" 0 10000 10000) >>
+                 F.formHandler (F.addTransForm "" "" "" "" "") 
+                               "Add transaction" 
+                               "/portfolio/addt" 
+                               "addTrans"
+                               add
+              where
+              add a = (liftIO . YD.withConnection $ (flip YD.insertPosition) a) 
+                        >> showPortfolio
 
 fetchMark :: YD.Connection -> IO [YT.Portfolio]
 fetchMark conn = do
