@@ -11,13 +11,34 @@ import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
 import qualified Text.Blaze.Internal as TBI
 
+-- Bootstrap attributes
 data_toggle :: BH.AttributeValue  -- ^ Attribute value.
             -> BH.Attribute       -- ^ Resulting attribute.
 data_toggle = TBI.attribute "data-toggle" " data-toggle=\""
 
 data_target :: BH.AttributeValue  -- ^ Attribute value.
-       -> BH.Attribute       -- ^ Resulting attribute.
+            -> BH.Attribute       -- ^ Resulting attribute.
 data_target = TBI.attribute "data-target" " data-target=\""
+
+aria_expanded :: BH.AttributeValue  -- ^ Attribute value.
+              -> BH.Attribute       -- ^ Resulting attribute.
+aria_expanded = TBI.attribute "aria-expanded" " aria-expanded=\""
+
+aria_controls :: BH.AttributeValue  -- ^ Attribute value.
+              -> BH.Attribute       -- ^ Resulting attribute.
+aria_controls = TBI.attribute "aria-controls" " aria-controls=\""
+
+aria_haspopup :: BH.AttributeValue  -- ^ Attribute value.
+              -> BH.Attribute       -- ^ Resulting attribute.
+aria_haspopup = TBI.attribute "aria-haspopup" " aria-haspopup=\""
+
+aria_labelledby :: BH.AttributeValue  -- ^ Attribute value.
+                -> BH.Attribute       -- ^ Resulting attribute.
+aria_labelledby = TBI.attribute "aria-labelledby" " aria-labelledby=\""
+
+role :: BH.AttributeValue  -- ^ Attribute value.
+     -> BH.Attribute       -- ^ Resulting attribute.
+role = TBI.attribute "role" " role=\""
 
 appTemplate :: BH.Html -> BH.Html -> ServerPart Response
 appTemplate title body = ok $ toResponse $ renderHtml $ do
@@ -29,62 +50,69 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                 BH.! BA.content "width=device-width, initial-scale=1.0"
 
         BH.link BH.! BA.rel "stylesheet"
-                BH.! BA.href "https://maxcdn.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css"
-        BH.link BH.! BA.rel "stylesheet"
-                BH.! BA.style "text/css"
-                BH.! BA.href "../static/css/bootstrap-responsive.min.css"
+                BH.! BA.href "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
         BH.link BH.! BA.rel "stylesheet"
                 BH.! BA.style "text/css"
                 BH.! BA.href "../static/css/stdtheme.css"
 
-        BH.script BH.! BA.src "https://maxcdn.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js" $ ""
+        BH.script BH.! BA.src "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" $ ""
 
     BH.body $ do
-        BH.div BH.! BA.id "wrap" $ do
 
-            -- Fixed navbar
-            BH.div BH.! BA.class_ "navbar navbar-inverse naavbar-fixed-top" $
-                BH.div BH.! BA.class_ "navbar-inner" $
-                    BH.div BH.! BA.class_ "container" $ do
-                        BH.button BH.! BA.type_ "button"
-                                  BH.! BA.class_ "btn btn-navbar"
-                                  BH.! data_toggle "collapse"
-                                  BH.! data_target ".nav-collapse" $ do
-                            BH.span BH.! BA.class_ "icon-bar" $ ""
-                            BH.span BH.! BA.class_ "icon-bar" $ ""
-                            BH.span BH.! BA.class_ "icon-bar" $ ""
-                        BH.a BH.! BA.class_ "brand" 
-                             BH.! BA.href "/home" $ "Intranet"
-                        BH.div BH.! BA.class_ "nav-collapse collapse" $
-                            BH.ul BH.! BA.class_ "nav" $ do 
-                                BH.li $ BH.a BH.! BA.href "/home" $ "Home"
-                                BH.li $ BH.a BH.! BA.href "/index" $ "Index"
-                                BH.li BH.! BA.class_ "dropdown" $ do 
-                                    BH.a BH.! BA.href "/index"
-                                         BH.! BA.class_ "dropdown-toggle"
-                                         BH.! data_toggle "dropdown" $ do 
-                                            BH.toHtml ("Dropdown " :: String) 
-                                            BH.b BH.! BA.class_ "caret" $ ""
-                                    BH.ul BH.! BA.class_ "dropdown-menu" $ do 
-                                        BH.li $ BH.a BH.! BA.href "/table" $
-                                            "Table"
-                                        BH.li $ BH.a BH.! BA.href "/form" $
-                                            "Form"
-                                        BH.li BH.! BA.class_ "divider" $ ""
-                                        BH.li BH.! BA.class_ "nav-header" $
-                                            "Guides"
-                                        BH.li $ BH.a BH.! BA.href "/good" $
-                                            "Good dialogue"
-            -- Page content
-            BH.div BH.! BA.class_ "container" $ body
+        -- Fixed navbar
+        BH.div BH.! BA.class_ "navbar navbar-inverse navbar-fixed-top" $
+            BH.div BH.! BA.class_ "container" $ do
+                BH.div BH.! BA.class_ "navbar-header" $ do
+                    BH.button BH.! BA.type_ "button"
+                              BH.! BA.class_ "navbar-toggle collapsed"
+                              BH.! aria_expanded "false"
+                              BH.! aria_controls "navbar"
+                              BH.! data_toggle "collapse"
+                              BH.! data_target "#navbar" $ do
+                        BH.span BH.! BA.class_ "sr-only" $ 
+                            "Toggle navigation"
+                        BH.span BH.! BA.class_ "icon-bar" $ ""
+                        BH.span BH.! BA.class_ "icon-bar" $ ""
+                        BH.span BH.! BA.class_ "icon-bar" $ ""
+                    BH.a BH.! BA.class_ "navbar-brand" 
+                         BH.! BA.href "/home" $ "Intranet"
+                BH.div BH.! BA.id "navbar"
+                       BH.! BA.class_ "collapse navbar-collapse" $
+                    BH.ul BH.! BA.class_ "nav navbar-nav" $ do 
+                        BH.li $ BH.a BH.! BA.href "/home" $ "Home"
+                        BH.li $ BH.a BH.! BA.href "/index" $ "Index"
+                        BH.li BH.! BA.class_ "dropdown" $ do 
+                            BH.a BH.! BA.id "navdrop"
+                                 BH.! role "button"
+                                 BH.! aria_expanded "false"
+                                      --BH.! aria_haspopup "true"
+                                 BH.! data_toggle "dropdown" $ do 
+                                BH.toHtml ("Dropdown " :: String) 
+                                BH.span BH.! BA.class_ "caret" $ ""
+                            BH.ul BH.! BA.class_ "dropdown-menu" 
+                                  BH.! role "menu"
+                                  BH.! aria_labelledby "navdrop" $ do 
+                                BH.li $ BH.a BH.! BA.href "/table" $
+                                    "Table"
+                                BH.li $ BH.a BH.! BA.href "/form" $
+                                    "Form"
+                                BH.li BH.! BA.class_ "divider" $ ""
+                                BH.li BH.! BA.class_ "nav-header" $
+                                    "Guides"
+                                BH.li $ BH.a BH.! BA.href "/good" $
+                                    "Good dialogue"
+
+        -- Page content
+        BH.div BH.! BA.class_ "container" $ body
 
         -- Footer
-        BH.footer BH.! BA.id "footer" $ BH.div BH.! BA.class_ "container" $ do
-            BH.p BH.! BA.class_ "muted credit" $ do 
-                BH.toHtml ("Powered by " :: String)
-                BH.a BH.! BA.href "http://www.happstack.com" $ "happstack"
-            BH.ul BH.! BA.class_ "inline" $ do
-                BH.li $ BH.a BH.! BA.href "/index" $ "Index"
-                BH.li BH.! BA.class_ "muted" $ 
-                    BH.preEscapedToHtml ("&middot;" :: String)
-                BH.li $ BH.a BH.! BA.href "/portfolio" $ "Portfolio manager"
+        BH.footer BH.! BA.class_ "footer" $ 
+            BH.div BH.! BA.class_ "container" $ do
+                BH.p BH.! BA.class_ "text-muted" $ do 
+                    BH.toHtml ("Powered by " :: String)
+                    BH.a BH.! BA.href "http://www.happstack.com" $ "happstack"
+                BH.ul BH.! BA.class_ "list-inline" $ do
+                    BH.li $ BH.a BH.! BA.href "/index" $ "Index"
+                    BH.li BH.! BA.class_ "muted" $ 
+                        BH.preEscapedToHtml ("&middot;" :: String)
+                    BH.li $ BH.a BH.! BA.href "/portfolio" $ "Portfolio manager"
