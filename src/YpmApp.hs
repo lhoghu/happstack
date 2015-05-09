@@ -53,8 +53,9 @@ instance BH.ToMarkup a => BH.ToMarkup (Maybe a) where
 -- | String constants to label html markup for a table representation of
 -- data type a
 data Annotations a = Annotations { 
-    title   :: String, 
-    columns :: [String] 
+    title       :: String, 
+    pageHeader  :: String, 
+    columns     :: [String] 
 } deriving Show
 
 -- | Interface for data types that can be represented in an html table
@@ -86,13 +87,14 @@ markupTable :: TableMarkup a =>
 markupTable s f = do
     x <- liftIO $ YD.withConnection f
     T.appTemplate (BH.toHtml $ title s) $ T.ypmContent $ do
-        BH.h1 BH.! BA.class_ "page-header" $ (BH.toHtml $ title s)
+        BH.h1 BH.! BA.class_ "page-header" $ (BH.toHtml $ pageHeader s)
         table (columns s) x
 
 -- | Html table for current holdings
 instance TableMarkup YT.Position where
     annotations = Annotations {
         title = "Portfolio Position",
+        pageHeader = "Transaction history",
         columns = ["Symbol", "Currency", "Trade Date", "Units", "Price"]
     }
 
@@ -109,6 +111,7 @@ showPortfolio = markupTable annotations YD.fetchPositions
 instance TableMarkup YT.Dividend where
     annotations = Annotations {
         title = "Dividend history",
+        pageHeader = "Dividend payments",
         columns = ["Symbol", "Dividend", "Date"]
     }
 
@@ -142,6 +145,7 @@ instance Format Percent where
 instance TableMarkup YT.Portfolio where
     annotations = Annotations {
         title = "Current portfolio value",
+        pageHeader = "Portfolio value",
         columns = ["Symbol", "Allocation", "Price", "Cost", 
                    "Current", "Change", "(%)", "Dividends", "PnL", "(%)"]
     }
