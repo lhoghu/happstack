@@ -135,14 +135,14 @@ dividendForm i = errorList ++>
 data Symbol = Symbol String deriving (Eq, Ord, Read, Show)
 data ValidSymbol = ValidSymbol
 
-validSymbolProof :: (Monad m) => error -> Proof m error ValidSymbol String String
+validSymbolProof :: (Monad m, MonadIO m) => error -> Proof m error ValidSymbol String String
 validSymbolProof e = Proof ValidSymbol (check) 
     where
-    check str = do return $ Right str
-        -- r <- liftIO $ Y.validateSymbol str
-        -- if r then (return $ Right str) else (return $ Left e)
+    check str = do --return $ Right str
+        r <- liftIO $ Y.validateSymbol str
+        if r then (return $ Right str) else (return $ Left e)
 
-symbolForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
+symbolForm :: (Monad m, MonadIO m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
               String -> -- initial value that appears in the text box
               Form m input (YpmFormError input) Html ValidSymbol Symbol
 symbolForm i = errorList ++> 
@@ -192,7 +192,7 @@ mkDividend =
     mk (Symbol sym) (Dividend div) (Date dte) = 
         YT.Dividend sym (read div :: Double) dte
 
-addDivForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
+addDivForm :: (Monad m, MonadIO m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
               String -> -- ^ initial symbol
               String -> -- ^ initial dividend
               String -> -- ^ initial date
@@ -215,7 +215,7 @@ mkTransaction =
     mk (Symbol sym) (Currency ccy) (Date dte) (Position pos) (Price pri) = 
         YT.Position sym ccy dte (read pos :: Double) (read pri :: Double) 
 
-addTransForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
+addTransForm :: (Monad m, MonadIO m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
                 String -> String -> String -> String -> String ->
                 Form m input (YpmFormError input) Html ValidTrans YT.Position
 addTransForm sym ccy dte pos pri = 
