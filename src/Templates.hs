@@ -28,8 +28,6 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                 BH.! BA.style "text/css"
                 BH.! BA.href "../static/css/stdtheme.css"
 
-        BH.script BH.! BA.src "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" $ ""
-
     BH.body $ do
 
         -- Fixed navbar
@@ -54,24 +52,26 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                     BH.ul BH.! BA.class_ "nav navbar-nav" $ do 
                         BH.li $ BH.a BH.! BA.href "/home" $ "Home"
                         BH.li $ BH.a BH.! BA.href "/index" $ "Index"
-                        -- BH.li BH.! BA.class_ "dropdown" $ do 
-                        --     BH.a BH.! BA.class_"dropdown-toggle"
-                        --          BH.! BB.role "button"
-                        --          BH.! BB.dataToggle "dropdown" 
-                        --          BH.! BB.ariaExpanded "false" $ do 
-                        --             BH.toHtml ("Dropdown " :: String) 
-                        --             BH.span BH.! BA.class_ "caret" $ ""
-                        --     BH.ul BH.! BA.class_ "dropdown-menu" 
-                        --           BH.! BB.role "menu" $ do 
-                        --         BH.li $ BH.a BH.! BA.href "/table" $
-                        --             "Table"
-                        --         BH.li $ BH.a BH.! BA.href "/form" $
-                        --             "Form"
-                        --         BH.li BH.! BA.class_ "divider" $ ""
-                        --         BH.li BH.! BA.class_ "nav-header" $
-                        --             "Guides"
-                        --         BH.li $ BH.a BH.! BA.href "/good" $
-                        --             "Good dialogue"
+                        BH.li BH.! BA.class_ "dropdown" $ do 
+                            BH.a BH.! BA.class_"dropdown-toggle"
+                                 BH.! BB.role "button"
+                                 BH.! BB.dataToggle "dropdown" 
+                                 BH.! BB.ariaExpanded "false" $ do 
+                                    BH.toHtml ("Dropdown " :: String) 
+                                    BH.span BH.! BA.class_ "caret" $ ""
+                            BH.ul BH.! BA.class_ "dropdown-menu" 
+                                  BH.! BB.role "menu" $ do 
+                                BH.li $ BH.a BH.! BA.href "/portfolio" $
+                                    "Portfolio Manager"
+                                BH.li $ BH.a BH.! BA.href "/table" $
+                                    "Table"
+                                BH.li $ BH.a BH.! BA.href "/form" $
+                                    "Form"
+                                BH.li BH.! BA.class_ "divider" $ ""
+                                BH.li BH.! BA.class_ "dropdown-header" $
+                                    "Guides"
+                                BH.li $ BH.a BH.! BA.href "/good" $
+                                    "Good dialogue"
 
         -- Page content
         BH.div BH.! BA.class_ "container" $ body
@@ -87,3 +87,7 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                     BH.li BH.! BA.class_ "muted" $ 
                         BH.preEscapedToHtml ("&middot;" :: String)
                     BH.li $ BH.a BH.! BA.href "/portfolio" $ "Portfolio manager"
+
+        -- Place at the end of the doc so the page loads faster
+        BH.script BH.! BA.src "https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" $ ""
+        BH.script BH.! BA.src "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" $ ""

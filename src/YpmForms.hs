@@ -64,12 +64,13 @@ validDateProof e =
     Proof ValidDate 
           (return . checkRegex (mkRegex "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") e)
 
-dateForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+dateForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
             String -> -- initial value that appears in the text box
             Form m input (YpmFormError input) Html ValidDate Date
 dateForm i = errorList ++> 
-             (label ("Date: " :: String) ++> 
-                (Date <<$>> prove (inputText i) (validDateProof InvalidDate)))
+             label ("Date" :: String) ++> 
+             mapView (injectClass "form-control") (Date <<$>> 
+                prove (inputText i) (validDateProof InvalidDate))
 
 data Currency = Currency String deriving (Eq, Ord, Read, Show)
 data ValidCurrency = ValidCurrency
@@ -78,13 +79,13 @@ validCcyProof :: (Monad m) => error -> Proof m error ValidCurrency String String
 validCcyProof e = 
     Proof ValidCurrency (return . checkRegex (mkRegex "^[A-Za-z]{3}$") e)
 
-ccyForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+ccyForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
             String -> 
             Form m input (YpmFormError input) Html ValidCurrency Currency
 ccyForm i = errorList ++> 
-            (label ("Currency: " :: String) ++> 
-               (Currency <<$>> 
-                    prove (inputText i) (validCcyProof InvalidCurrency)))
+            label ("Currency" :: String) ++> 
+            mapView (injectClass "form-control") (Currency <<$>> 
+                prove (inputText i) (validCcyProof InvalidCurrency))
 
 data Position = Position String deriving (Eq, Ord, Read, Show)
 data ValidPosition = ValidPosition
@@ -93,13 +94,13 @@ validPosProof :: (Monad m) => error -> Proof m error ValidPosition String String
 validPosProof e = 
     Proof ValidPosition (return . checkRegex (mkRegex "^[0-9]*\\.?[0-9]*$") e)
 
-positionForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+positionForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
                 String -> 
                 Form m input (YpmFormError input) Html ValidPosition Position
 positionForm i = errorList ++> 
-            (label ("Position: " :: String) ++> 
-               (Position <<$>> 
-                    prove (inputText i) (validPosProof InvalidPosition)))
+                 label ("Position" :: String) ++> 
+                 mapView (injectClass "form-control") (Position <<$>> 
+                    prove (inputText i) (validPosProof InvalidPosition))
 
 data Price = Price String deriving (Eq, Ord, Read, Show)
 data ValidPrice = ValidPrice
@@ -108,13 +109,13 @@ validPriceProof :: (Monad m) => error -> Proof m error ValidPrice String String
 validPriceProof e = 
     Proof ValidPrice (return . checkRegex (mkRegex "^[0-9]*\\.?[0-9]*$") e)
 
-priceForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+priceForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
              String -> 
              Form m input (YpmFormError input) Html ValidPrice Price
 priceForm i = errorList ++> 
-            (label ("Price: " :: String) ++> 
-               (Price <<$>> 
-                    prove (inputText i) (validPriceProof InvalidPrice)))
+              label ("Price" :: String) ++> 
+              mapView (injectClass "form-control") (Price <<$>> 
+                    prove (inputText i) (validPriceProof InvalidPrice))
 
 data Dividend = Dividend String deriving (Eq, Ord, Read, Show)
 data ValidDividend = ValidDividend
@@ -123,13 +124,13 @@ validDivProof :: (Monad m) => error -> Proof m error ValidDividend String String
 validDivProof e = 
     Proof ValidDividend (return . checkRegex (mkRegex "^[0-9]*\\.?[0-9]*$") e)
 
-dividendForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+dividendForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
                 String -> 
                 Form m input (YpmFormError input) Html ValidDividend Dividend
 dividendForm i = errorList ++> 
-            (label ("Dividend: " :: String) ++> 
-               (Dividend <<$>> 
-                    prove (inputText i) (validDivProof InvalidDividend)))
+                 label ("Dividend" :: String) ++> 
+                 mapView (injectClass "form-control") (Dividend <<$>> 
+                    prove (inputText i) (validDivProof InvalidDividend))
 
 data Symbol = Symbol String deriving (Eq, Ord, Read, Show)
 data ValidSymbol = ValidSymbol
@@ -141,13 +142,20 @@ validSymbolProof e = Proof ValidSymbol (check)
         -- r <- liftIO $ Y.validateSymbol str
         -- if r then (return $ Right str) else (return $ Left e)
 
-symbolForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+symbolForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
               String -> -- initial value that appears in the text box
               Form m input (YpmFormError input) Html ValidSymbol Symbol
 symbolForm i = errorList ++> 
-               (label ("Symbol: " :: String) ++> 
-                   (Symbol <<$>> 
-                        prove (inputText i) (validSymbolProof InvalidSymbol)))
+               label ("Symbol" :: String) ++> 
+               mapView (injectClass "form-control") (Symbol <<$>> 
+                    prove (inputText i) (validSymbolProof InvalidSymbol))
+
+formGroup :: Html -> Html 
+formGroup v = Text.Blaze.Html5.div ! class_ "form-group" $ v
+
+-- Inject class attribute into markup element
+injectClass :: AttributeValue -> Html -> Html 
+injectClass s v = v ! class_ s 
 
 blazeForm :: Html -> AttributeValue -> Html
 blazeForm html uri = form ! action uri
@@ -184,14 +192,14 @@ mkDividend =
     mk (Symbol sym) (Dividend div) (Date dte) = 
         YT.Dividend sym (read div :: Double) dte
 
-addDivForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+addDivForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
               String -> -- ^ initial symbol
               String -> -- ^ initial dividend
               String -> -- ^ initial date
               Form m input (YpmFormError input) Html ValidDiv YT.Dividend
-addDivForm sym div dte = mkDividend <<*>> (symbolForm sym) 
-                                    <<*>> (dividendForm div)
-                                    <<*>> (dateForm dte)
+addDivForm sym div dte = mkDividend <<*>> (mapView formGroup (symbolForm sym))
+                                    <<*>> (mapView formGroup (dividendForm div))
+                                    <<*>> (mapView formGroup (dateForm dte))
 
 data ValidTrans = ValidTrans
 mkTransaction :: (Monad m, Monoid view) => 
@@ -207,11 +215,12 @@ mkTransaction =
     mk (Symbol sym) (Currency ccy) (Date dte) (Position pos) (Price pri) = 
         YT.Position sym ccy dte (read pos :: Double) (read pri :: Double) 
 
-addTransForm :: (Monad m, FormInput input, ToMarkup (YpmFormError input)) => 
+addTransForm :: (Monad m, Functor m, FormInput input, ToMarkup (YpmFormError input)) => 
                 String -> String -> String -> String -> String ->
                 Form m input (YpmFormError input) Html ValidTrans YT.Position
-addTransForm sym ccy dte pos pri = mkTransaction <<*>> (symbolForm sym) 
-                                                 <<*>> (ccyForm ccy)
-                                                 <<*>> (dateForm dte)
-                                                 <<*>> (positionForm pos)
-                                                 <<*>> (priceForm pri)
+addTransForm sym ccy dte pos pri = 
+    mkTransaction <<*>> (mapView formGroup (symbolForm sym))
+                  <<*>> (mapView formGroup (ccyForm ccy))
+                  <<*>> (mapView formGroup (dateForm dte))
+                  <<*>> (mapView formGroup (positionForm pos))
+                  <<*>> (mapView formGroup (priceForm pri))
