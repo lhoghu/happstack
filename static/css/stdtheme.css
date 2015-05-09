@@ -5,7 +5,7 @@ html {
 
 body {
     /* Top margin by navbar height */
-    margin-top: 90px;
+    margin-top: 50px;
 
     /* Margin bottom by footer height */
     margin-bottom: 90px;
@@ -51,6 +51,11 @@ body {
 .nav-sidebar > .active > a:focus {
     color: #fff;
     background-color: #428bca;
+}
+
+.sub-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
 
 .main {

@@ -30,12 +30,21 @@ run = CM.msum
 
 -- | Index navigation page for /portfolio/* urls
 ypmIndex :: HS.ServerPart HS.Response
-ypmIndex = T.appTemplate "Portfolio Manager" $ T.ypmContent $ BH.div $ do
-    BH.p $ BH.a BH.! BA.href "/portfolio/show" $ "Show the current portfolio"
-    BH.p $ BH.a BH.! BA.href "/portfolio/mark" $ "Show the current prtf value"
-    BH.p $ BH.a BH.! BA.href "/portfolio/divs" $ "Show the dividend history"
-    BH.p $ BH.a BH.! BA.href "/portfolio/addd" $ "Add a new dividend"
-    BH.p $ BH.a BH.! BA.href "/portfolio/addt" $ "Add a new transaction"
+ypmIndex = T.appTemplate "Portfolio Manager" $ T.ypmContent $ do
+    BH.h1 BH.! BA.class_ "page-header" $ "Portfolio Manager"
+    BH.div $ do
+        BH.p $ do
+            BH.toHtml ("Description of the application functionality with a link to the " :: String)
+            BH.a BH.! BA.href 
+                "https://github.com/lhoghu/yahoo-portfolio-manager" $ "github"
+            BH.toHtml (" site" :: String)
+    BH.h2 BH.! BA.class_ "sub-header" $ "Navigation"
+    BH.div $ do
+        BH.p $ BH.a BH.! BA.href "/portfolio/show" $ "Show the current portfolio"
+        BH.p $ BH.a BH.! BA.href "/portfolio/mark" $ "Show the current value"
+        BH.p $ BH.a BH.! BA.href "/portfolio/divs" $ "Show the dividend history"
+        BH.p $ BH.a BH.! BA.href "/portfolio/addd" $ "Add a new dividend"
+        BH.p $ BH.a BH.! BA.href "/portfolio/addt" $ "Add a new transaction"
 
 instance BH.ToMarkup a => BH.ToMarkup (Maybe a) where
     toMarkup Nothing = BH.toMarkup ("-" :: String)
@@ -60,11 +69,11 @@ class TableMarkup a where
 
 -- | Turn a vector of strings into a set of column headers
 headers :: [String] -> BH.Html
-headers h = BH.tr $ CM.forM_ h (\s -> BH.th $ BH.toHtml s)
+headers h = BH.thead $ BH.tr $ CM.forM_ h (\s -> BH.th $ BH.toHtml s)
 
 table :: TableMarkup a => [String] -> [a] -> BH.Html
-table hs ps = BH.table BH.! BA.class_ "table table-bordered" $ 
-                headers hs >> CM.forM_ ps row
+table hs ps = BH.table BH.! BA.class_ "table table-striped" $ 
+                headers hs >> BH.tbody (CM.forM_ ps row)
 
 -- | Create html markup of a table
 -- Annotations a contains the window title and table column headers
@@ -76,7 +85,9 @@ markupTable :: TableMarkup a =>
                HS.ServerPart HS.Response
 markupTable s f = do
     x <- liftIO $ YD.withConnection f
-    T.appTemplate (BH.toHtml $ title s) $ T.ypmContent $ table (columns s) x
+    T.appTemplate (BH.toHtml $ title s) $ T.ypmContent $ do
+        BH.h1 BH.! BA.class_ "page-header" $ (BH.toHtml $ title s)
+        table (columns s) x
 
 -- | Html table for current holdings
 instance TableMarkup YT.Position where

@@ -73,7 +73,7 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                                     "Good dialogue"
 
         -- Page content
-        BH.div BH.! BA.class_ "container" $ body
+        BH.div BH.! BA.class_ "container-fluid" $ body
 
         -- Footer
         BH.footer BH.! BA.class_ "footer" $ 
