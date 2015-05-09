@@ -9,43 +9,16 @@ import Happstack.Server
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
-import qualified Text.Blaze.Internal as TBI
+import qualified Text.Blaze.Bootstrap as BB
 
--- Bootstrap attributes
-data_toggle :: BH.AttributeValue  -- ^ Attribute value.
-            -> BH.Attribute       -- ^ Resulting attribute.
-data_toggle = TBI.attribute "data-toggle" " data-toggle=\""
-
-data_target :: BH.AttributeValue  -- ^ Attribute value.
-            -> BH.Attribute       -- ^ Resulting attribute.
-data_target = TBI.attribute "data-target" " data-target=\""
-
-aria_expanded :: BH.AttributeValue  -- ^ Attribute value.
-              -> BH.Attribute       -- ^ Resulting attribute.
-aria_expanded = TBI.attribute "aria-expanded" " aria-expanded=\""
-
-aria_controls :: BH.AttributeValue  -- ^ Attribute value.
-              -> BH.Attribute       -- ^ Resulting attribute.
-aria_controls = TBI.attribute "aria-controls" " aria-controls=\""
-
-aria_haspopup :: BH.AttributeValue  -- ^ Attribute value.
-              -> BH.Attribute       -- ^ Resulting attribute.
-aria_haspopup = TBI.attribute "aria-haspopup" " aria-haspopup=\""
-
-aria_labelledby :: BH.AttributeValue  -- ^ Attribute value.
-                -> BH.Attribute       -- ^ Resulting attribute.
-aria_labelledby = TBI.attribute "aria-labelledby" " aria-labelledby=\""
-
-role :: BH.AttributeValue  -- ^ Attribute value.
-     -> BH.Attribute       -- ^ Resulting attribute.
-role = TBI.attribute "role" " role=\""
 
 appTemplate :: BH.Html -> BH.Html -> ServerPart Response
 appTemplate title body = ok $ toResponse $ renderHtml $ do
     BH.head $ do
         BH.title title
-        BH.meta BH.! BA.httpEquiv "Content-Type"
-                BH.! BA.content "text/html;charset=utf-8"
+        BH.meta BH.! BA.charset"utf-8"
+        BH.meta BH.! BA.httpEquiv "X-UA-Compatible"
+                BH.! BA.content "IE=edge"
         BH.meta BH.! BA.name "viewport"
                 BH.! BA.content "width=device-width, initial-scale=1.0"
 
@@ -60,15 +33,15 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
     BH.body $ do
 
         -- Fixed navbar
-        BH.div BH.! BA.class_ "navbar navbar-inverse navbar-fixed-top" $
+        BB.nav BH.! BA.class_ "navbar navbar-inverse navbar-fixed-top" $
             BH.div BH.! BA.class_ "container" $ do
                 BH.div BH.! BA.class_ "navbar-header" $ do
                     BH.button BH.! BA.type_ "button"
                               BH.! BA.class_ "navbar-toggle collapsed"
-                              BH.! aria_expanded "false"
-                              BH.! aria_controls "navbar"
-                              BH.! data_toggle "collapse"
-                              BH.! data_target "#navbar" $ do
+                              BH.! BB.ariaExpanded "false"
+                              BH.! BB.ariaControls "navbar"
+                              BH.! BB.dataToggle "collapse"
+                              BH.! BB.dataTarget "#navbar" $ do
                         BH.span BH.! BA.class_ "sr-only" $ 
                             "Toggle navigation"
                         BH.span BH.! BA.class_ "icon-bar" $ ""
@@ -81,26 +54,24 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                     BH.ul BH.! BA.class_ "nav navbar-nav" $ do 
                         BH.li $ BH.a BH.! BA.href "/home" $ "Home"
                         BH.li $ BH.a BH.! BA.href "/index" $ "Index"
-                        BH.li BH.! BA.class_ "dropdown" $ do 
-                            BH.a BH.! BA.id "navdrop"
-                                 BH.! role "button"
-                                 BH.! aria_expanded "false"
-                                      --BH.! aria_haspopup "true"
-                                 BH.! data_toggle "dropdown" $ do 
-                                BH.toHtml ("Dropdown " :: String) 
-                                BH.span BH.! BA.class_ "caret" $ ""
-                            BH.ul BH.! BA.class_ "dropdown-menu" 
-                                  BH.! role "menu"
-                                  BH.! aria_labelledby "navdrop" $ do 
-                                BH.li $ BH.a BH.! BA.href "/table" $
-                                    "Table"
-                                BH.li $ BH.a BH.! BA.href "/form" $
-                                    "Form"
-                                BH.li BH.! BA.class_ "divider" $ ""
-                                BH.li BH.! BA.class_ "nav-header" $
-                                    "Guides"
-                                BH.li $ BH.a BH.! BA.href "/good" $
-                                    "Good dialogue"
+                        -- BH.li BH.! BA.class_ "dropdown" $ do 
+                        --     BH.a BH.! BA.class_"dropdown-toggle"
+                        --          BH.! BB.role "button"
+                        --          BH.! BB.dataToggle "dropdown" 
+                        --          BH.! BB.ariaExpanded "false" $ do 
+                        --             BH.toHtml ("Dropdown " :: String) 
+                        --             BH.span BH.! BA.class_ "caret" $ ""
+                        --     BH.ul BH.! BA.class_ "dropdown-menu" 
+                        --           BH.! BB.role "menu" $ do 
+                        --         BH.li $ BH.a BH.! BA.href "/table" $
+                        --             "Table"
+                        --         BH.li $ BH.a BH.! BA.href "/form" $
+                        --             "Form"
+                        --         BH.li BH.! BA.class_ "divider" $ ""
+                        --         BH.li BH.! BA.class_ "nav-header" $
+                        --             "Guides"
+                        --         BH.li $ BH.a BH.! BA.href "/good" $
+                        --             "Good dialogue"
 
         -- Page content
         BH.div BH.! BA.class_ "container" $ body

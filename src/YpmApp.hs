@@ -63,7 +63,8 @@ headers :: [String] -> BH.Html
 headers h = BH.tr $ CM.forM_ h (\s -> BH.th $ BH.toHtml s)
 
 table :: TableMarkup a => [String] -> [a] -> BH.Html
-table hs ps = BH.table $ headers hs >> CM.forM_ ps row
+table hs ps = BH.table BH.! BA.class_ "table table-bordered" $ 
+                headers hs >> CM.forM_ ps row
 
 -- | Create html markup of a table
 -- Annotations a contains the window title and table column headers
@@ -84,11 +85,11 @@ instance TableMarkup YT.Position where
         columns = ["Symbol", "Currency", "Trade Date", "Units", "Price"]
     }
 
-    row p = BH.tr $ BH.td (BH.toHtml $ YT.possymbol p) >> 
-                    BH.td (BH.toHtml $ YT.poscurrency p) >> 
-                    BH.td (BH.toHtml $ YT.posdate p) >>
-                    BH.td (BH.toHtml $ YT.posposition p) >>
-                    BH.td (BH.toHtml $ YT.posstrike p)
+    row p = BH.tr $ BH.td (format $ YT.possymbol p) >> 
+                    BH.td (format $ YT.poscurrency p) >> 
+                    BH.td (format $ YT.posdate p) >>
+                    BH.td (format $ YT.posposition p) >>
+                    BH.td (format $ YT.posstrike p)
 
 showPortfolio :: HS.ServerPart HS.Response 
 showPortfolio = markupTable annotations YD.fetchPositions 
@@ -100,12 +101,31 @@ instance TableMarkup YT.Dividend where
         columns = ["Symbol", "Dividend", "Date"]
     }
 
-    row p = BH.tr $ BH.td (BH.toHtml $ YT.divsymbol p) >> 
-                    BH.td (BH.toHtml $ YT.dividend p) >> 
-                    BH.td (BH.toHtml $ YT.divdate p)
+    row p = BH.tr $ BH.td (format $ YT.divsymbol p) >> 
+                    BH.td (format $ YT.dividend p) >> 
+                    BH.td (format $ YT.divdate p)
 
 showDividends :: HS.ServerPart HS.Response 
 showDividends = markupTable annotations YD.fetchDividends
+
+data Percent = Percent (Maybe Double) deriving Show
+
+class Format a where
+    format :: a -> BH.Html
+
+instance Format String where
+    format = BH.toHtml
+
+instance Format Double where
+    format x = BH.toHtml $ toLazyText $ fixed 2 x 
+
+instance Format a => Format (Maybe a) where
+    format (Just x) = format x
+    format Nothing = format ("-" :: String)
+
+instance Format Percent where
+    format (Percent (Just x)) = format $ 100.0 * x
+    format (Percent Nothing) = format ("-" :: String)
 
 -- | Html table for the current value of the current holdings
 instance TableMarkup YT.Portfolio where
@@ -116,16 +136,16 @@ instance TableMarkup YT.Portfolio where
     }
 
     row p = BH.tr $ 
-        BH.td (BH.toHtml $ YT.prtfsymbol p) >> 
-        BH.td (BH.toHtml $ formatter (YT.prtfalloc p)) >> 
-        BH.td (BH.toHtml $ formatter (YT.prtfprice p)) >> 
-        BH.td (BH.toHtml $ formatter (YT.prtfcost p)) >> 
-        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfcurrent p))) >> 
-        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfchange p))) >> 
-        BH.td (BH.toHtml $ formatter (100.0 * handleMaybe (YT.prtfpctchange p))) >> 
-        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfdiv p))) >> 
-        BH.td (BH.toHtml $ formatter (handleMaybe (YT.prtfpnl p))) >> 
-        BH.td (BH.toHtml $ formatter (100.0 * handleMaybe (YT.prtfpctpnl p)))
+        BH.td (format $ YT.prtfsymbol p) >> 
+        BH.td (format $ YT.prtfalloc p) >> 
+        BH.td (format $ YT.prtfprice p) >> 
+        BH.td (format $ YT.prtfcost p) >> 
+        BH.td (format $ YT.prtfcurrent p) >> 
+        BH.td (format $ YT.prtfchange p) >> 
+        BH.td (format $ Percent $ YT.prtfpctchange p) >> 
+        BH.td (format $ YT.prtfdiv p) >> 
+        BH.td (format $ YT.prtfpnl p) >> 
+        BH.td (format $ Percent $ YT.prtfpctpnl p)
         where formatter x = toLazyText $ fixed 2 x
               handleMaybe (Just x) = x
               handleMaybe Nothing = 0.0 

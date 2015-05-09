@@ -34,16 +34,16 @@ body {
     max-width: 680px;
 }
 
-table, th, td {
-    border: 1px solid black;
-}
-
-th {
-    background-color: green;
-    color: white;
-    text-align: center;
-}
-
-td {
-    text-align: right;
-}
+/* table, th, td { */
+/*     border: 1px solid black; */
+/* } */
+/*  */
+/* th { */
+/*     background-color: green; */
+/*     color: white; */
+/*     text-align: center; */
+/* } */
+/*  */
+/* td { */
+/*     text-align: right; */
+/* } */
