@@ -11,7 +11,6 @@ import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
 import qualified Text.Blaze.Bootstrap as BB
 
-
 appTemplate :: BH.Html -> BH.Html -> ServerPart Response
 appTemplate title body = ok $ toResponse $ renderHtml $ do
     BH.head $ do
@@ -49,7 +48,7 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                          BH.! BA.href "/home" $ "Intranet"
                 BH.div BH.! BA.id "navbar"
                        BH.! BA.class_ "collapse navbar-collapse" $
-                    BH.ul BH.! BA.class_ "nav navbar-nav" $ do 
+                    BH.ul BH.! BA.class_ "nav navbar-nav navbar-right" $ do 
                         BH.li $ BH.a BH.! BA.href "/home" $ "Home"
                         BH.li $ BH.a BH.! BA.href "/index" $ "Index"
                         BH.li BH.! BA.class_ "dropdown" $ do 
@@ -91,3 +90,17 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
         -- Place at the end of the doc so the page loads faster
         BH.script BH.! BA.src "https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" $ ""
         BH.script BH.! BA.src "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" $ ""
+
+ypmContent :: BH.Html -> BH.Html
+ypmContent content = 
+    BH.div BH.! BA.class_ "row" $ do
+        BH.div BH.! BA.class_ "col-sm-3 col-md-2 sidebar" $ do
+            BH.ul BH.! BA.class_ "nav nav-sidebar" $ do
+                BH.li $ BH.a BH.! BA.href "/portfolio" $ "Portfolio Manager"
+                BH.li $ BH.a BH.! BA.href "/portfolio/show" $ "Portfolio"
+                BH.li $ BH.a BH.! BA.href "/portfolio/divs" $ "Dividends"
+                BH.li $ BH.a BH.! BA.href "/portfolio/mark" $ "Current Value"
+            BH.ul BH.! BA.class_ "nav nav-sidebar" $ do
+                BH.li $ BH.a BH.! BA.href "/portfolio/addd" $ "Add Dividend"
+                BH.li $ BH.a BH.! BA.href "/portfolio/addt" $ "Add Transaction"
+        BH.div BH.! BA.class_ "col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" $ content

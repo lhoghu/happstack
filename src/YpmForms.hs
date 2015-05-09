@@ -173,12 +173,12 @@ formHandler :: (ToMarkup error) =>
 formHandler form title uri id successResponse = msum 
     [ do H.method H.GET 
          html <- viewForm id form 
-         T.appTemplate (toHtml title) $ blazeForm html uri
+         T.appTemplate (toHtml title) $ T.ypmContent $ blazeForm html uri
     , do H.method H.POST 
          r <- eitherForm environment id form 
          case r of 
             (Right a) -> successResponse a
-            (Left view) -> T.appTemplate (toHtml title) $ blazeForm view uri
+            (Left view) -> T.appTemplate (toHtml title) $ T.ypmContent $ blazeForm view uri
     ]
 
 data ValidDiv = ValidDiv

@@ -30,7 +30,7 @@ run = CM.msum
 
 -- | Index navigation page for /portfolio/* urls
 ypmIndex :: HS.ServerPart HS.Response
-ypmIndex = T.appTemplate "Portfolio Manager" $ BH.div $ do
+ypmIndex = T.appTemplate "Portfolio Manager" $ T.ypmContent $ BH.div $ do
     BH.p $ BH.a BH.! BA.href "/portfolio/show" $ "Show the current portfolio"
     BH.p $ BH.a BH.! BA.href "/portfolio/mark" $ "Show the current prtf value"
     BH.p $ BH.a BH.! BA.href "/portfolio/divs" $ "Show the dividend history"
@@ -76,7 +76,7 @@ markupTable :: TableMarkup a =>
                HS.ServerPart HS.Response
 markupTable s f = do
     x <- liftIO $ YD.withConnection f
-    T.appTemplate (BH.toHtml $ title s) $ table (columns s) x
+    T.appTemplate (BH.toHtml $ title s) $ T.ypmContent $ table (columns s) x
 
 -- | Html table for current holdings
 instance TableMarkup YT.Position where
