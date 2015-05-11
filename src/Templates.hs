@@ -25,7 +25,7 @@ appTemplate title body = ok $ toResponse $ renderHtml $ do
                 BH.! BA.href "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
         BH.link BH.! BA.rel "stylesheet"
                 BH.! BA.style "text/css"
-                BH.! BA.href "../static/css/stdtheme.css"
+                BH.! BA.href "./static/css/stdtheme.css"
 
     BH.body $ do
 

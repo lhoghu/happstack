@@ -14,8 +14,7 @@ import qualified Text.Blaze.Html5 as BH
 import qualified Text.Blaze.Html5.Attributes as BA
 import qualified Data.YahooPortfolioManager.DbAdapter as YD
 import qualified Data.YahooPortfolioManager.Types as YT
-import Data.Text.Format (fixed)
-import Data.Text.Lazy.Builder (toLazyText)
+import Text.Printf
 
 -- | Routing table for requests on the /portfolio path
 run :: HS.ServerPart HS.Response
@@ -131,7 +130,7 @@ instance Format String where
     format = BH.toHtml
 
 instance Format Double where
-    format x = BH.toHtml $ toLazyText $ fixed 2 x 
+    format x = BH.toHtml $ (printf "%.2f" x :: String)
 
 instance Format a => Format (Maybe a) where
     format (Just x) = format x
@@ -161,9 +160,6 @@ instance TableMarkup YT.Portfolio where
         BH.td (format $ YT.prtfdiv p) >> 
         BH.td (format $ YT.prtfpnl p) >> 
         BH.td (format $ Percent $ YT.prtfpctpnl p)
-        where formatter x = toLazyText $ fixed 2 x
-              handleMaybe (Just x) = x
-              handleMaybe Nothing = 0.0 
 
 addDividend = HS.decodeBody (HS.defaultBodyPolicy "/tmp" 0 10000 10000) >>
               F.formHandler (F.addDivForm "" "" "") 
